@@ -27,6 +27,8 @@ namespace CollectionsMod
 
         public static ClickableTextureComponent downButton;
 
+        public static int maxPageCount = 8;
+
         // call this method from your Entry class
         internal static void Initialize(IMonitor monitor, ModConfig config)
         {
@@ -41,8 +43,10 @@ namespace CollectionsMod
         }
         internal static void Draw(CollectionsPage __instance, SpriteBatch b)
         {
-            if (CollectionPageClothing.currentSideTabPage == 1) upButton.draw(b);
-            if (CollectionPageClothing.currentSideTabPage == 0) downButton.draw(b);
+            if (upButton != null && CollectionPageClothing.currentSideTabPage > 0)
+                upButton.draw(b);
+            if (downButton != null && (CollectionPageClothing.currentSideTabPage + 1) * maxPageCount < __instance.sideTabs.Count)
+                downButton.draw(b);
             if (__instance.currentTab == CollectionPageClothing.tabID)
             {
                 CollectionPageClothing.hatsButton.draw(b);
@@ -65,12 +69,12 @@ namespace CollectionsMod
         internal static bool ReceiveLeftClick(CollectionsPage __instance, int x, int y, bool playSound = true)
         {
 
-            if (upButton.containsPoint(x, y))
+            if (upButton != null && upButton.containsPoint(x, y) && CollectionPageClothing.currentSideTabPage > 0)
             {
                 CollectionPageClothing.currentSideTabPage = 0;
                 CollectionPageClothing.RedrawSideTabs(__instance);
             }
-            if (downButton.containsPoint(x, y))
+            if (downButton != null && downButton.containsPoint(x, y) && (CollectionPageClothing.currentSideTabPage + 1) * maxPageCount < __instance.sideTabs.Count)
             {
                 CollectionPageClothing.currentSideTabPage = 1;
                 CollectionPageClothing.RedrawSideTabs(__instance);

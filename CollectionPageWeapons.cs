@@ -15,12 +15,15 @@ namespace CollectionsMod
 
         public static IModHelper Helper;
 
+        public static ModConfig Config;
+
         public static readonly int tabID = 5525;
 
-        internal static void Initialize(IMonitor monitor, IModHelper helper)
+        internal static void Initialize(IMonitor monitor, IModHelper helper, ModConfig modConfig)
         {
             Monitor = monitor;
             Helper = helper;
+            Config = modConfig;
         }
 
         public static void UpdateCollectionsPage(CollectionsPage page)
@@ -39,6 +42,12 @@ namespace CollectionsMod
                         spritePath += "VT/";
                     }
                 }
+
+                var tabOrder = TabUtils.GetEnabledTabOrder(Config);
+                int myIndex = tabOrder.IndexOf(tabID);
+                if (myIndex == -1)
+                    return; // Not enabled
+
                 page.sideTabs.Add(
 
                     tabID,
@@ -52,7 +61,7 @@ namespace CollectionsMod
                         4f
                     )
                     {
-                        myID = 7009,
+                        myID = 7009 + myIndex,
                         upNeighborID = -99998,
                         downNeighborID = -99998,
                         rightNeighborID = 0

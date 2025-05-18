@@ -53,64 +53,107 @@ namespace CollectionsMod
             Helper = helper;
             Config = config;
         }
-
         public static void RedrawSideTabs(CollectionsPage collectionPage)
         {
-            int key = 0;
-            int num = 0;
+            var tabKeys = collectionPage.sideTabs.Keys.ToList();
+            const int maxPerPage = 8;
 
-            int index = 0;
-            int drawnIndex = 0;
+            int totalPages = (int)Math.Ceiling(tabKeys.Count / (float)maxPerPage);
+            currentSideTabPage = Math.Clamp(currentSideTabPage, 0, Math.Max(0, totalPages - 1));
 
-            int maxPerPage = 8;
+            int start = currentSideTabPage * maxPerPage;
+            int end = Math.Min(start + maxPerPage, tabKeys.Count);
 
-            foreach (KeyValuePair<int, ClickableTextureComponent> tab in collectionPage.sideTabs)
+            // Hide all tabs first
+            foreach (var key in tabKeys)
+                collectionPage.sideTabs[key].bounds.Y = -1000;
+
+            // Show and position only the visible tabs
+            for (int i = start; i < end; i++)
             {
-                int currentKey = tab.Key;
-                if (collectionPage.sideTabs[currentKey].bounds.Y > num)
+                var tab = collectionPage.sideTabs[tabKeys[i]];
+                int visibleIndex = i - start;
+                tab.bounds.Y = collectionPage.yPositionOnScreen - 44 + 64 * (2 + visibleIndex);
+
+                // Set up/down neighbor IDs for visible tabs
+                if (visibleIndex == 0 && Patches.upButton != null && currentSideTabPage > 0)
                 {
-                    key = currentKey;
+                    tab.upNeighborID = Patches.upButton.myID;
+                    tab.upNeighborImmutable = true;
                 }
-
-                tab.Value.bounds.Y = collectionPage.yPositionOnScreen - 44 + 64 * (2 + drawnIndex);
-
-                if(currentSideTabPage == 1) tab.Value.bounds.Y += 64;
-
-                if (index >= maxPerPage && currentSideTabPage == 0 || index < maxPerPage && currentSideTabPage == 1)
+                else if (visibleIndex > 0)
                 {
-                    tab.Value.bounds.Y = -100;
+                    tab.upNeighborID = collectionPage.sideTabs[tabKeys[i - 1]].myID;
+                    tab.upNeighborImmutable = false;
                 }
                 else
                 {
-                    drawnIndex++;
+                    tab.upNeighborID = -1;
+                    tab.upNeighborImmutable = true;
                 }
-                
 
-                if (collectionPage.sideTabs[currentKey].downNeighborID == -1)
+                if (visibleIndex == end - start - 1 && Patches.downButton != null && currentSideTabPage < totalPages - 1)
                 {
-                    collectionPage.sideTabs[currentKey].downNeighborID = -99998;
+                    tab.downNeighborID = Patches.downButton.myID;
+                    tab.downNeighborImmutable = true;
                 }
-                index++;
+                else if (visibleIndex < end - start - 1)
+                {
+                    tab.downNeighborID = collectionPage.sideTabs[tabKeys[i + 1]].myID;
+                    tab.downNeighborImmutable = false;
+                }
+                else
+                {
+                    tab.downNeighborID = -1;
+                    tab.downNeighborImmutable = true;
+                }
+
+                // Special handling for your custom tabs
+                if (tabKeys[i] == CollectionPageClothing.tabID)
+                {
+                    tab.rightNeighborID = 7011;
+                    tab.rightNeighborImmutable = true;
+                    tab.downNeighborID = -1;
+                    tab.downNeighborImmutable = true;
+                }
+                else if (tabKeys[i] == CollectionPageWeapons.tabID)
+                {
+                    tab.upNeighborID = 708;
+                    tab.upNeighborImmutable = true;
+                }
             }
 
+            // After positioning visible tabs...
+            if (Patches.upButton != null && currentSideTabPage > 0)
+            {
+                // Place upButton just above the first visible tab
+                if (tabKeys.Count > start)
+                {
+                    var firstTab = collectionPage.sideTabs[tabKeys[start]];
+                    Patches.upButton.bounds.X = firstTab.bounds.X + firstTab.bounds.Width / 2 - Patches.upButton.bounds.Width / 2;
+                    Patches.upButton.bounds.Y = firstTab.bounds.Y - Patches.upButton.bounds.Height - 4; // 4px gap
+                }
+            }
 
+            // Set up/down button neighbor IDs
+            if (Patches.upButton != null)
+            {
+                Patches.upButton.downNeighborID = (start < end) ? collectionPage.sideTabs[tabKeys[start]].myID : -7777;
+            }
+            if (Patches.downButton != null)
+            {
+                Patches.downButton.upNeighborID = (end > start) ? collectionPage.sideTabs[tabKeys[end - 1]].myID : -7777;
+            }
 
-            collectionPage.sideTabs[0].upNeighborID = -1;
-            collectionPage.sideTabs[0].upNeighborImmutable = true;
-
-
-            collectionPage.sideTabs[7].downNeighborID = 709;
-            collectionPage.sideTabs[7].downNeighborImmutable = true;
-
-            collectionPage.sideTabs[tabID].downNeighborID = -1;
-            collectionPage.sideTabs[tabID].downNeighborImmutable = true;
-
-            collectionPage.sideTabs[CollectionPageWeapons.tabID].upNeighborID = 708;
-            collectionPage.sideTabs[CollectionPageWeapons.tabID].upNeighborImmutable = true;
-
-            collectionPage.sideTabs[tabID].rightNeighborID = 7026;
-            collectionPage.sideTabs[tabID].rightNeighborImmutable = true;
-
+            if (Patches.downButton != null && (currentSideTabPage + 1) * maxPerPage < tabKeys.Count)
+            {
+                if (tabKeys.Count > 0 && end > start)
+                {
+                    var lastTab = collectionPage.sideTabs[tabKeys[end - 1]];
+                    Patches.downButton.bounds.X = lastTab.bounds.X + lastTab.bounds.Width / 2 - Patches.downButton.bounds.Width / 2;
+                    Patches.downButton.bounds.Y = lastTab.bounds.Y + lastTab.bounds.Height + 4; // 4px gap
+                }
+            }
         }
 
         public static void UpdateCollectionsPage(CollectionsPage page)
@@ -127,6 +170,11 @@ namespace CollectionsMod
                 }
             }
 
+            var tabOrder = TabUtils.GetEnabledTabOrder(Config);
+            int myIndex = tabOrder.IndexOf(tabID);
+            if (myIndex == -1)
+                return; // Not enabled
+
             // TAB
             page.sideTabs.Add(
                 tabID,
@@ -135,12 +183,12 @@ namespace CollectionsMod
                     new Rectangle(page.xPositionOnScreen - 48, page.yPositionOnScreen + 64 * (2 + page.sideTabs.Count), 64, 64),
                     "",
                     "Clothing",
-                        Helper.ModContent.Load<Texture2D>(spritePath + "ClothingCursor.png"),
+                    Helper.ModContent.Load<Texture2D>(spritePath + "ClothingCursor.png"),
                     new Rectangle(0, 0, 16, 16),
                     4f
                 )
                 {
-                    myID = 7010,
+                    myID = 7009 + myIndex,
                     upNeighborID = -99998,
                     downNeighborID = -99998,
                     rightNeighborID = 7011,
@@ -150,96 +198,119 @@ namespace CollectionsMod
 
             // LITTLE TABS
 
-            //HAT
-            hatsButton = new ClickableTextureComponent(
-                "collectionHats",
-                new Rectangle(page.xPositionOnScreen + 128 * 1 - 64, page.yPositionOnScreen + 116, 128, 64),
-                "",
-                "",
+            // Add buttons conditionally based on config options
+            int buttonIndex = 0;
+
+            // HATS
+            if (Config.EnableHats)
+            {
+                hatsButton = new ClickableTextureComponent(
+                    "collectionHats",
+                    new Rectangle(page.xPositionOnScreen + 128 * (buttonIndex + 1) - 64, page.yPositionOnScreen + 116, 128, 64),
+                    "",
+                    "",
                     Helper.ModContent.Load<Texture2D>(spritePath + "ButtonHat.png"),
-                new Rectangle(0, 0, 32, 16),
-                4f
-            )
-            {
-                myID = 7011,
-                leftNeighborID = 7010,
-                upNeighborID = -99998,
-                downNeighborID = -99998,
-                rightNeighborID = 7012
-            };
+                    new Rectangle(0, 0, 32, 16),
+                    4f
+                )
+                {
+                    myID = 7011 + buttonIndex,
+                    leftNeighborID = 7010 + buttonIndex,
+                    upNeighborID = -99998,
+                    downNeighborID = -99998,
+                    rightNeighborID = 7012 + buttonIndex
+                };
+                buttonIndex++;
+            }
 
-            //SHIT
-            shirtsButton = new ClickableTextureComponent(
-                "collectionShirts",
-                new Rectangle(page.xPositionOnScreen + 128 * 2 - 64, page.yPositionOnScreen + 116, 128, 64),
-                "",
-                "",
+            // SHIRTS
+            if (Config.EnableShirts)
+            {
+                shirtsButton = new ClickableTextureComponent(
+                    "collectionShirts",
+                    new Rectangle(page.xPositionOnScreen + 128 * (buttonIndex + 1) - 64, page.yPositionOnScreen + 116, 128, 64),
+                    "",
+                    "",
                     Helper.ModContent.Load<Texture2D>(spritePath + "ButtonShirt.png"),
-                new Rectangle(0, 0, 32, 16),
-                4f
-            )
-            {
-                myID = 7012,
-                leftNeighborID = 7011,
-                upNeighborID = -99998,
-                downNeighborID = -99998,
-                rightNeighborID = 7013
-            };
+                    new Rectangle(0, 0, 32, 16),
+                    4f
+                )
+                {
+                    myID = 7011 + buttonIndex,
+                    leftNeighborID = 7010 + buttonIndex,
+                    upNeighborID = -99998,
+                    downNeighborID = -99998,
+                    rightNeighborID = 7012 + buttonIndex
+                };
+                buttonIndex++;
+            }
 
-            //PANTS
-            pantsButton= new ClickableTextureComponent(
-                "collectionPants",
-                new Rectangle(page.xPositionOnScreen + 128 * 3 - 64, page.yPositionOnScreen + 116, 128, 64),
-                "",
-                "",
+            // PANTS
+            if (Config.EnablePants)
+            {
+                pantsButton = new ClickableTextureComponent(
+                    "collectionPants",
+                    new Rectangle(page.xPositionOnScreen + 128 * (buttonIndex + 1) - 64, page.yPositionOnScreen + 116, 128, 64),
+                    "",
+                    "",
                     Helper.ModContent.Load<Texture2D>(spritePath + "ButtonPants.png"),
-                new Rectangle(0, 0, 32, 16),
-                4f
-            )
-            {
-                myID = 7013,
-                leftNeighborID = 7012,
-                upNeighborID = -99998,
-                downNeighborID = -99998,
-                rightNeighborID = 7014
-            };
+                    new Rectangle(0, 0, 32, 16),
+                    4f
+                )
+                {
+                    myID = 7011 + buttonIndex,
+                    leftNeighborID = 7010 + buttonIndex,
+                    upNeighborID = -99998,
+                    downNeighborID = -99998,
+                    rightNeighborID = 7012 + buttonIndex
+                };
+                buttonIndex++;
+            }
 
-            //RINGS
-            ringsButton =  new ClickableTextureComponent(
-                "collectionRings",
-                new Rectangle(page.xPositionOnScreen + 128 * 4 - 64, page.yPositionOnScreen + 116, 128, 64),
-                "",
-                "",
+            // RINGS
+            if (Config.EnableRings)
+            {
+                ringsButton = new ClickableTextureComponent(
+                    "collectionRings",
+                    new Rectangle(page.xPositionOnScreen + 128 * (buttonIndex + 1) - 64, page.yPositionOnScreen + 116, 128, 64),
+                    "",
+                    "",
                     Helper.ModContent.Load<Texture2D>(spritePath + "ButtonRings.png"),
-                new Rectangle(0, 0, 32, 16),
-                4f
-            )
-            {
-                myID = 7014,
-                leftNeighborID = 7013,
-                upNeighborID = -99998,
-                downNeighborID = -99998,
-                rightNeighborID = 7015
-            };
+                    new Rectangle(0, 0, 32, 16),
+                    4f
+                )
+                {
+                    myID = 7011 + buttonIndex,
+                    leftNeighborID = 7010 + buttonIndex,
+                    upNeighborID = -99998,
+                    downNeighborID = -99998,
+                    rightNeighborID = 7012 + buttonIndex
+                };
+                buttonIndex++;
+            }
 
-            //SHOES
-            bootsButton = new ClickableTextureComponent(
-                "collectionShoes",
-                new Rectangle(page.xPositionOnScreen + 128 * 5 - 64, page.yPositionOnScreen + 116, 128, 64),
-                "",
-                "",
-                    Helper.ModContent.Load<Texture2D>(spritePath + "ButtonShoes.png"),
-                new Rectangle(0, 0, 32, 16),
-                4f
-            )
+            // SHOES
+            if (Config.EnableShoes)
             {
-                myID = 7015,
-                leftNeighborID = 7014,
-                upNeighborID = -99998,
-                downNeighborID = -99998,
-                rightNeighborID = 0
-            };
-            
+                bootsButton = new ClickableTextureComponent(
+                    "collectionShoes",
+                    new Rectangle(page.xPositionOnScreen + 128 * (buttonIndex + 1) - 64, page.yPositionOnScreen + 116, 128, 64),
+                    "",
+                    "",
+                    Helper.ModContent.Load<Texture2D>(spritePath + "ButtonShoes.png"),
+                    new Rectangle(0, 0, 32, 16),
+                    4f
+                )
+                {
+                    myID = 7011 + buttonIndex,
+                    leftNeighborID = 7010 + buttonIndex,
+                    upNeighborID = -99998,
+                    downNeighborID = -99998,
+                    rightNeighborID = 7012 + buttonIndex
+                };
+                buttonIndex++;
+            }
+
 
             page.collections.Add(tabID, new List<List<ClickableTextureComponent>>());
 

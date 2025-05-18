@@ -8,6 +8,15 @@ namespace CollectionsMod
 {
     public sealed class ModConfig
     {
+        public bool EnableWeapons { get; internal set; } = true;
+        public bool EnableClothes { get; internal set; } = true;
+        public bool EnableRings { get; set; } = true;
+        public bool EnableHats { get; set; } = true;
+        public bool EnableShirts { get; set; } = true;
+        public bool EnablePants { get; set; } = true;
+        public bool EnableShoes { get; set; } = true;
+
+
         public bool showHeartEventItems { get; set; } = true;
 
                     //exlude & custom order hats
@@ -146,5 +155,10 @@ namespace CollectionsMod
             "510", "511", "512", "513", "514", "878", "853",
             "854", "855", "804"
         };
+
+        public void UpdateEnableClothes()
+        {
+            EnableClothes = EnableClothes && EnableRings || EnableHats || EnableShirts || EnablePants || EnableShoes;
+        }
     }
 }

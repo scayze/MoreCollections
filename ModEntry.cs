@@ -1,4 +1,6 @@
 ﻿
+using CollectionsMod.Integrations;
+using GenericModConfigMenu;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
@@ -12,13 +14,14 @@ namespace CollectionsMod
     /// The mod entry point.
     internal sealed class ModEntry : Mod
     {
-        private ModConfig Config;
+        internal ModConfig Config;
 
         public override void Entry(IModHelper helper)
         {
             this.Config = this.Helper.ReadConfig<ModConfig>();
+            this.Config.UpdateEnableClothes();
 
-            CollectionPageWeapons.Initialize(Monitor, Helper);
+            CollectionPageWeapons.Initialize(Monitor, Helper, Config);
             CollectionPageClothing.Initialize(Monitor, Helper, Config);
             Patches.Initialize(Monitor, Config);
 
@@ -27,6 +30,7 @@ namespace CollectionsMod
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.Saving += OnSaving;
             helper.Events.GameLoop.UpdateTicked += OnTicked;
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
 
             var harmony = new Harmony(this.ModManifest.UniqueID);
 
@@ -56,7 +60,11 @@ namespace CollectionsMod
                postfix: new HarmonyMethod(typeof(Patches), nameof(Patches.Draw))
             );
 
+        }
 
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        {
+            HookToGMCM.Apply(this);
         }
 
         private void OnInventoryChange(object? sender, InventoryChangedEventArgs e)
@@ -96,13 +104,11 @@ namespace CollectionsMod
         private void OnMenuChange(object? sender, MenuChangedEventArgs e)
         {
             if (!(e.NewMenu is GameMenu menu))
-            {
                 return;
-            }
 
             foreach (IClickableMenu page in menu.pages)
             {
-                if (page is CollectionsPage)
+                if (page is CollectionsPage collectionsPage)
                 {
                     Patches.upButton = new ClickableTextureComponent(new Rectangle(page.xPositionOnScreen - 32, page.yPositionOnScreen + 92, 48, 44), Game1.mouseCursors, new Rectangle(421, 459, 11, 12), 4f)
                     {
@@ -115,11 +121,13 @@ namespace CollectionsMod
                         upNeighborID = -7777
                     };
 
+
                     CollectionsPage collectionPage = (CollectionsPage)page;
 
-                    CollectionPageWeapons.UpdateCollectionsPage(page as CollectionsPage);
-                    CollectionPageClothing.UpdateCollectionsPage(page as CollectionsPage);
-                    
+                    if (Config.EnableWeapons)
+                        CollectionPageWeapons.UpdateCollectionsPage(page as CollectionsPage);
+                    if (Config.EnableClothes)
+                        CollectionPageClothing.UpdateCollectionsPage(page as CollectionsPage);
                     CollectionPageClothing.RedrawSideTabs(collectionPage);
                 }
             }

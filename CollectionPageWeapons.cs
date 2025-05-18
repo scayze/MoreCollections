@@ -15,18 +15,39 @@ namespace CollectionsMod
 
         public static IModHelper Helper;
 
+        public static ModConfig Config;
+
         public static readonly int tabID = 5525;
 
-        internal static void Initialize(IMonitor monitor, IModHelper helper)
+        internal static void Initialize(IMonitor monitor, IModHelper helper, ModConfig modConfig)
         {
             Monitor = monitor;
             Helper = helper;
+            Config = modConfig;
         }
 
         public static void UpdateCollectionsPage(CollectionsPage page)
         {
             try
             {
+
+                // Conditional path based on Earthy mod
+                string spritePath = "assets/LooseSprites/";
+
+                if (Helper.ModRegistry.IsLoaded("DaisyNiko.EarthyInterface"))
+                {
+                    spritePath += "Earthy/";
+                    if (Helper.ModRegistry.IsLoaded("Taiyo.VanillaTweaks.UI"))
+                    {
+                        spritePath += "VT/";
+                    }
+                }
+
+                var tabOrder = TabUtils.GetEnabledTabOrder(Config);
+                int myIndex = tabOrder.IndexOf(tabID);
+                if (myIndex == -1)
+                    return; // Not enabled
+
                 page.sideTabs.Add(
 
                     tabID,
@@ -35,12 +56,12 @@ namespace CollectionsMod
                         new Rectangle(page.xPositionOnScreen - 48, page.yPositionOnScreen + 64 * (2 + page.sideTabs.Count), 64, 64),
                         "",
                         "Weapons",
-                        Helper.ModContent.Load<Texture2D>("assets/LooseSprites/WeaponCursor.png"),
+                            Helper.ModContent.Load<Texture2D>(spritePath + "WeaponCursor.png"),
                         new Rectangle(0, 0, 16, 16),
                         4f
                     )
                     {
-                        myID = 7009,
+                        myID = 7009 + myIndex,
                         upNeighborID = -99998,
                         downNeighborID = -99998,
                         rightNeighborID = 0

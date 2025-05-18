@@ -27,6 +27,18 @@ namespace CollectionsMod
         {
             try
             {
+
+                // Conditional path based on Earthy mod
+                string spritePath = "assets/LooseSprites/";
+
+                if (Helper.ModRegistry.IsLoaded("DaisyNiko.EarthyInterface"))
+                {
+                    spritePath += "Earthy/";
+                    if (Helper.ModRegistry.IsLoaded("Taiyo.VanillaTweaks.UI"))
+                    {
+                        spritePath += "VT/";
+                    }
+                }
                 page.sideTabs.Add(
 
                     tabID,
@@ -35,7 +47,7 @@ namespace CollectionsMod
                         new Rectangle(page.xPositionOnScreen - 48, page.yPositionOnScreen + 64 * (2 + page.sideTabs.Count), 64, 64),
                         "",
                         "Weapons",
-                        Helper.ModContent.Load<Texture2D>("assets/LooseSprites/WeaponCursor.png"),
+                            Helper.ModContent.Load<Texture2D>(spritePath + "WeaponCursor.png"),
                         new Rectangle(0, 0, 16, 16),
                         4f
                     )

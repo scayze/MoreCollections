@@ -115,6 +115,18 @@ namespace CollectionsMod
 
         public static void UpdateCollectionsPage(CollectionsPage page)
         {
+            // Conditional path based on Earthy mod
+            string spritePath = "assets/LooseSprites/";
+
+            if (Helper.ModRegistry.IsLoaded("DaisyNiko.EarthyInterface"))
+            {
+                spritePath += "Earthy/";
+                if (Helper.ModRegistry.IsLoaded("Taiyo.VanillaTweaks.UI"))
+                {
+                    spritePath += "VT/";
+                }
+            }
+
             // TAB
             page.sideTabs.Add(
                 tabID,
@@ -123,7 +135,7 @@ namespace CollectionsMod
                     new Rectangle(page.xPositionOnScreen - 48, page.yPositionOnScreen + 64 * (2 + page.sideTabs.Count), 64, 64),
                     "",
                     "Clothing",
-                    Helper.ModContent.Load<Texture2D>("assets/LooseSprites/ClothingCursor.png"),
+                        Helper.ModContent.Load<Texture2D>(spritePath + "ClothingCursor.png"),
                     new Rectangle(0, 0, 16, 16),
                     4f
                 )
@@ -144,7 +156,7 @@ namespace CollectionsMod
                 new Rectangle(page.xPositionOnScreen + 128 * 1 - 64, page.yPositionOnScreen + 116, 128, 64),
                 "",
                 "",
-                Helper.ModContent.Load<Texture2D>("assets/LooseSprites/ButtonHat.png"),
+                    Helper.ModContent.Load<Texture2D>(spritePath + "ButtonHat.png"),
                 new Rectangle(0, 0, 32, 16),
                 4f
             )
@@ -162,7 +174,7 @@ namespace CollectionsMod
                 new Rectangle(page.xPositionOnScreen + 128 * 2 - 64, page.yPositionOnScreen + 116, 128, 64),
                 "",
                 "",
-                Helper.ModContent.Load<Texture2D>("assets/LooseSprites/ButtonShirt.png"),
+                    Helper.ModContent.Load<Texture2D>(spritePath + "ButtonShirt.png"),
                 new Rectangle(0, 0, 32, 16),
                 4f
             )
@@ -180,7 +192,7 @@ namespace CollectionsMod
                 new Rectangle(page.xPositionOnScreen + 128 * 3 - 64, page.yPositionOnScreen + 116, 128, 64),
                 "",
                 "",
-                Helper.ModContent.Load<Texture2D>("assets/LooseSprites/ButtonPants.png"),
+                    Helper.ModContent.Load<Texture2D>(spritePath + "ButtonPants.png"),
                 new Rectangle(0, 0, 32, 16),
                 4f
             )
@@ -198,7 +210,7 @@ namespace CollectionsMod
                 new Rectangle(page.xPositionOnScreen + 128 * 4 - 64, page.yPositionOnScreen + 116, 128, 64),
                 "",
                 "",
-                Helper.ModContent.Load<Texture2D>("assets/LooseSprites/ButtonRings.png"),
+                    Helper.ModContent.Load<Texture2D>(spritePath + "ButtonRings.png"),
                 new Rectangle(0, 0, 32, 16),
                 4f
             )
@@ -216,7 +228,7 @@ namespace CollectionsMod
                 new Rectangle(page.xPositionOnScreen + 128 * 5 - 64, page.yPositionOnScreen + 116, 128, 64),
                 "",
                 "",
-                Helper.ModContent.Load<Texture2D>("assets/LooseSprites/ButtonShoes.png"),
+                    Helper.ModContent.Load<Texture2D>(spritePath + "ButtonShoes.png"),
                 new Rectangle(0, 0, 32, 16),
                 4f
             )

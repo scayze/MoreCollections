@@ -75,11 +75,25 @@ namespace CollectionsMod
         }
 
 
-
         public static void InitialSaveScanning()
         {
             foreach (GameLocation loc in Game1.locations)
             {
+                // Scan all Dressers for items
+                foreach (Furniture furniture in loc.furniture)
+                {
+                    if (furniture is not StorageFurniture dresser) continue;
+                    if (dresser.heldItems == null) continue;
+
+                    foreach (Item item in dresser.heldItems)
+                    {
+                        if (item == null) continue;
+                        modData.CollectedItems.Add(item.QualifiedItemId);
+                    }
+                    
+                }
+
+                // Scan all chests for items
                 foreach (var pair in loc.Objects.Pairs)
                 {
                     if (pair.Value is not Chest chest) continue;
@@ -87,9 +101,10 @@ namespace CollectionsMod
 
                     foreach (Item item in chest.GetItemsForPlayer())
                     {
-                        if (item == null) return;
+                        if (item == null) continue;
                         modData.CollectedItems.Add(item.QualifiedItemId);
                     }
+                    
                 }
             }
 

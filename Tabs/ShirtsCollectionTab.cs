@@ -63,7 +63,7 @@ namespace CollectionsMod
             ShirtDataDefinition definition = new ShirtDataDefinition();
             IEnumerable<string> orderedData = definition.GetAllIds()
                 .Where(entry => !excludeSet.Contains(entry))
-                .Where(entry => !(Config.showHeartEventItems && entry == "1127"))
+                .Where(entry => !(!Config.showHeartEventItems && entry == "1127"))
                 .Where(entry => !(Game1.player.IsMale && femaleUniques.Contains(entry))) // Filter female unique clothes when playing as boi
                 .Where(entry => !(!Game1.player.IsMale && maleUniques.Contains(entry)))  // Filter male unique clothes when playing as girl
                 .OrderBy(entry =>

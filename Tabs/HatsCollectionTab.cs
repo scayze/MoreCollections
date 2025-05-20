@@ -21,6 +21,10 @@ namespace CollectionsMod
             this.Icon = Helper.ModContent.Load<Texture2D>("assets/LooseSprites/HatsCursor.png");
             this.excludeSet = config.excludedHatIDs;
             this.customOrder = config.customHatOrder;
+
+            this.maxColumns = 9;
+            this.iconWidth = 75;
+            this.iconHeight = 80;
         }
 
         public override void createDescription(CollectionsPage _instance, string id)
@@ -36,7 +40,7 @@ namespace CollectionsMod
             HatDataDefinition definition = new HatDataDefinition();
             IEnumerable<string> orderedData = definition.GetAllIds()
                 .Where(entry => !excludeSet.Contains(entry))
-                .Where(entry => !(Config.showHeartEventItems && entry == "41"))
+                .Where(entry => !(!Config.showHeartEventItems && entry == "41"))
                 .OrderBy(entry =>
                 {
                     int index = customOrder.IndexOf(entry);

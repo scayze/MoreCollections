@@ -36,7 +36,7 @@ namespace CollectionsMod
             BootsDataDefinition definition = new BootsDataDefinition();
             IEnumerable<string> orderedData = definition.GetAllIds()
                 .Where(entry => !excludeSet.Contains(entry))
-                .Where(entry => !(Config.showHeartEventItems && entry == "804"))
+                .Where(entry => !(!Config.showHeartEventItems && entry == "804"))
                 .OrderBy(entry =>
                 {
                     int index = customOrder.IndexOf(entry);

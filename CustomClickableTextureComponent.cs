@@ -12,6 +12,7 @@ namespace CollectionsMod
             : base(name, bounds, label, hoverText, texture, sourceRect, scale, drawShadow)
         {
             this.dyedSourceRect = dyedSourceRect;
+            this.bounds.Offset(16f, 16f);
         }
 
         public override void draw(SpriteBatch b, Color c, float layerDepth, int frameOffset = 0, int xOffset = 0, int yOffset = 0)

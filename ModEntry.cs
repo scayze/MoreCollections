@@ -1,11 +1,15 @@
 ﻿
 using HarmonyLib;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.ItemTypeDefinitions;
 using StardewValley.Menus;
+using StardewValley.Objects;
 using System.Reflection;
+using xTile.Dimensions;
 
 namespace CollectionsMod
 {
@@ -14,23 +18,34 @@ namespace CollectionsMod
     {
         private ModConfig Config;
 
+        public static CModData modData;
+
+        public static List<CollectionTab> collectionTabs = new List<CollectionTab> ();
+
+       
+
         public override void Entry(IModHelper helper)
         {
             this.Config = this.Helper.ReadConfig<ModConfig>();
 
-            CollectionPageWeapons.Initialize(Monitor, Helper);
-            CollectionPageClothing.Initialize(Monitor, Helper, Config);
-            Patches.Initialize(Monitor, Config);
+            // Collections
+            collectionTabs.Add(new WeaponCollectionTab(Monitor, helper, Config));
+            collectionTabs.Add(new HatsCollectionTab(Monitor, helper, Config));
+            collectionTabs.Add(new ShirtsCollectionTab(Monitor, helper, Config));
+            collectionTabs.Add(new PantsCollectionTab(Monitor, helper, Config));
+            collectionTabs.Add(new BootsCollectionTab(Monitor, helper, Config));
+            collectionTabs.Add(new RingsCollectionTab(Monitor, helper, Config));
 
+            // Events
             helper.Events.Display.MenuChanged += OnMenuChange;
             helper.Events.Player.InventoryChanged += OnInventoryChange;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.Saving += OnSaving;
             helper.Events.GameLoop.UpdateTicked += OnTicked;
 
-            var harmony = new Harmony(this.ModManifest.UniqueID);
-
-            // example patch, you'll need to edit this for your patch
+            // Harmony Patches
+            Harmony harmony = new Harmony(this.ModManifest.UniqueID);
+            
             harmony.Patch(
                original: AccessTools.Method(typeof(CollectionsPage), nameof(CollectionsPage.createDescription)),
                prefix: new HarmonyMethod(typeof(Patches), nameof(Patches.CreateDescription))
@@ -59,37 +74,72 @@ namespace CollectionsMod
 
         }
 
+
+
+        public static void InitialSaveScanning()
+        {
+            foreach (GameLocation loc in Game1.locations)
+            {
+                foreach (var pair in loc.Objects.Pairs)
+                {
+                    if (pair.Value is not Chest chest) continue;
+                    if (!chest.playerChest.Value) continue;
+
+                    foreach (Item item in chest.GetItemsForPlayer())
+                    {
+                        if (item == null) return;
+                        modData.CollectedItems.Add(item.QualifiedItemId);
+                    }
+                }
+            }
+
+            foreach (Item item in Game1.player.Items)
+            {
+                if (item == null)
+                {
+                    continue;
+                }
+                modData.CollectedItems.Add(item.QualifiedItemId);
+            }
+
+            // You can wear Pans on the hat, however, if you already upgraded the pan to e.g. iridium,
+            // you would never be able to the gold pant on the collection page. So we manually add lower tier hats
+            if (modData.CollectedItems.Contains("(H)IridiumPanHat")) modData.CollectedItems.Add("(H)GoldPanHat");
+            if (modData.CollectedItems.Contains("(H)GoldPanHat")) modData.CollectedItems.Add("(H)SteelPanHat");
+            if (modData.CollectedItems.Contains("(H)SteelPanHat")) modData.CollectedItems.Add("(H)71");
+        }
+
         private void OnInventoryChange(object? sender, InventoryChangedEventArgs e)
         {
             foreach(Item i in e.Added)
             {
-                Patches.modData.CollectedItems.Add(i.QualifiedItemId);
+                modData.CollectedItems.Add(i.QualifiedItemId);
             } 
         }
 
         private void OnSaveLoaded(object? sender, SaveLoadedEventArgs e)
         {
             CModData data = Helper.Data.ReadSaveData<CModData>("weaponcollection-data") ?? new CModData();
-            Patches.modData = data;
+            modData = data;
 
-            CollectionPageWeapons.InitialSaveScanning();
+            InitialSaveScanning();
         }
 
         private void OnSaving(object? sender, SavingEventArgs e)
         {
-            Helper.Data.WriteSaveData("weaponcollection-data", Patches.modData);
+            Helper.Data.WriteSaveData("weaponcollection-data", modData);
         }
 
         private void OnTicked(object? sender, UpdateTickedEventArgs e)
         {
-            if (Game1.player != null && Patches.modData != null)
+            if (Game1.player != null && modData != null)
             {
-                if (Game1.player.hat.Value != null) Patches.modData.CollectedItems.Add(Game1.player.hat.Value.QualifiedItemId);
-                if (Game1.player.shirtItem.Value != null) Patches.modData.CollectedItems.Add(Game1.player.shirtItem.Value.QualifiedItemId);
-                if (Game1.player.boots.Value != null) Patches.modData.CollectedItems.Add(Game1.player.boots.Value.QualifiedItemId);
-                if (Game1.player.pantsItem.Value != null) Patches.modData.CollectedItems.Add(Game1.player.pantsItem.Value.QualifiedItemId);
-                if (Game1.player.leftRing.Value != null) Patches.modData.CollectedItems.Add(Game1.player.leftRing.Value.QualifiedItemId);
-                if (Game1.player.rightRing.Value != null) Patches.modData.CollectedItems.Add(Game1.player.rightRing.Value.QualifiedItemId);
+                if (Game1.player.hat.Value != null) modData.CollectedItems.Add(Game1.player.hat.Value.QualifiedItemId);
+                if (Game1.player.shirtItem.Value != null) modData.CollectedItems.Add(Game1.player.shirtItem.Value.QualifiedItemId);
+                if (Game1.player.boots.Value != null) modData.CollectedItems.Add(Game1.player.boots.Value.QualifiedItemId);
+                if (Game1.player.pantsItem.Value != null) modData.CollectedItems.Add(Game1.player.pantsItem.Value.QualifiedItemId);
+                if (Game1.player.leftRing.Value != null) modData.CollectedItems.Add(Game1.player.leftRing.Value.QualifiedItemId);
+                if (Game1.player.rightRing.Value != null) modData.CollectedItems.Add(Game1.player.rightRing.Value.QualifiedItemId);
             }     
         }
 
@@ -102,26 +152,14 @@ namespace CollectionsMod
 
             foreach (IClickableMenu page in menu.pages)
             {
-                if (page is CollectionsPage)
+                if (page is not CollectionsPage collectionPage) continue;
+
+                foreach(CollectionTab tab in collectionTabs)
                 {
-                    Patches.upButton = new ClickableTextureComponent(new Rectangle(page.xPositionOnScreen - 32, page.yPositionOnScreen + 92, 48, 44), Game1.mouseCursors, new Rectangle(421, 459, 11, 12), 4f)
-                    {
-                        myID = 708,
-                        downNeighborID = -7777
-                    };
-                    Patches.downButton = new ClickableTextureComponent(new Rectangle(page.xPositionOnScreen - 32, page.yPositionOnScreen + page.height - 76, 48, 44), Game1.mouseCursors, new Rectangle(421, 472, 11, 12), 4f)
-                    {
-                        myID = 709,
-                        upNeighborID = -7777
-                    };
-
-                    CollectionsPage collectionPage = (CollectionsPage)page;
-
-                    CollectionPageWeapons.UpdateCollectionsPage(page as CollectionsPage);
-                    CollectionPageClothing.UpdateCollectionsPage(page as CollectionsPage);
-                    
-                    CollectionPageClothing.RedrawSideTabs(collectionPage);
+                    if(tab.Enabled) tab.Populate(collectionPage);
                 }
+
+                CollectionPageHelper.RedrawSideTabs(collectionPage);
             }
         }
     }

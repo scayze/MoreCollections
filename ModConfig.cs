@@ -9,8 +9,36 @@ namespace CollectionsMod
     public sealed class ModConfig
     {
         public bool showHeartEventItems { get; set; } = true;
+        public bool showWeaponTab { get; set; } = true;
+        public bool showHatsTab { get; set; } = true;
+        public bool showShirtsTab { get; set; } = true;
+        public bool showPantsTab { get; set; } = true;
+        public bool showBootsTab { get; set; } = true;
+        public bool showRingsTab { get; set; } = true;
 
-                    //exlude & custom order hats
+        // Step 1: Define weapons to exclude
+        public HashSet<string> excludedWeaponIDs { get; set; } = new()
+        {
+            "49", "34", "47", "53", "66" // Add any other IDs you want to skip
+        };
+
+
+        // Step 2: Define the custom order of weapon IDs
+        public List<string> customWeaponOrder { get; set; } = new()
+        {
+            "0", "11", "12", "16", "17", "22",
+            "43", "1", "20", "31", "24",
+            "44", "15", "6", "27",
+            "65", "18", "21", "19", "26", "32", "33",
+            "5", "10", "14", "7", "51", "46",
+            "13", "8", "60", "3", "52", "48", "28",
+            "50", "45", "23", "2", "9", "56",
+            "59", "61", "29", "57", "54", "4", "55",
+            "58", "64", "62", "63", "42", "39",
+            "25", "37", "36", "38", "30", "41", "35", "40"
+        };
+
+        //exlude & custom order hats
         public HashSet<string> excludedHatIDs { get; set; } = new()
         {
             "36"

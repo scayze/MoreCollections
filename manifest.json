@@ -1,7 +1,7 @@
 {
   "Name": "More Collections",
   "Author": "looooor & scayze",
-  "Version": "0.2.0",
+  "Version": "0.2.1",
   "Description": "Adds a weapon and clothing collection in the collections tab.",
   "UniqueID": "scayze.CollectionsMod",
   "EntryDll": "CollectionsMod.dll",

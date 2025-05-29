@@ -24,8 +24,6 @@ namespace CollectionsMod
 
         public static List<CollectionTab> collectionTabs = new List<CollectionTab> ();
 
-       
-
         public override void Entry(IModHelper helper)
         {
             this.Config = this.Helper.ReadConfig<ModConfig>();

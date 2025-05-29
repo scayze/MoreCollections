@@ -71,7 +71,7 @@ namespace CollectionsMod
                  4f
              )
             {
-                myID = 7009,
+                myID = TabID,
                 upNeighborID = -99998,
                 downNeighborID = -99998,
                 rightNeighborID = 0
@@ -106,6 +106,17 @@ namespace CollectionsMod
 
         public virtual void Populate(CollectionsPage _instance)
         {
+            if (_instance.sideTabs.ContainsKey(TabID))
+            {
+                ClickableTextureComponent conflictingComponent = _instance.sideTabs[TabID];
+                string debugString = " MyID: " + conflictingComponent.myID;
+                debugString += " Label: " + conflictingComponent.label;
+                debugString += " Name: " + conflictingComponent.name;
+                debugString += " HoverText: " + conflictingComponent.hoverText;
+                Monitor.LogOnce("Conflicting TabID: " + TabID + debugString, LogLevel.Warn);
+                return;
+            }
+
             List<ParsedItemData> items = GenerateItems(_instance);
 
             _instance.sideTabs.Add(TabID, getTabIcon(_instance));

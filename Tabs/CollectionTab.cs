@@ -38,6 +38,22 @@ namespace CollectionsMod
             Config = config;
         }
 
+        public string getIconFolderPath()
+        {
+            string spritePath = "assets/LooseSprites/";
+
+            if (Helper.ModRegistry.IsLoaded("DaisyNiko.EarthyInterface"))
+            {
+                spritePath += "Earthy/";
+                if (Helper.ModRegistry.IsLoaded("Taiyo.VanillaTweaks.UI"))
+                {
+                    spritePath += "VT/";
+                }
+            }
+
+            return spritePath;
+        }
+
         public virtual bool itemCollected(ParsedItemData itemdata)
         {
             return ModEntry.modData.CollectedItems.Contains(itemdata.QualifiedItemId) || Game1.player.tailoredItems.ContainsKey(itemdata.ItemId);

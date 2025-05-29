@@ -19,7 +19,7 @@ namespace CollectionsMod
         {
             this.name = "Rings";
             this.TabID = 5663;
-            this.Icon = Helper.ModContent.Load<Texture2D>("assets/LooseSprites/RingsCursor.png");
+            this.Icon = Helper.ModContent.Load<Texture2D>(getIconFolderPath() + "RingsCursor.png");
             this.excludeSet = config.excludedRingIDs;
             this.customOrder = config.customRingOrder;
         }

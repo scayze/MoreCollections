@@ -18,7 +18,7 @@ namespace CollectionsMod
         {
             name = "Hats";
             this.TabID = 5659;
-            this.Icon = Helper.ModContent.Load<Texture2D>("assets/LooseSprites/HatsCursor.png");
+            this.Icon = Helper.ModContent.Load<Texture2D>(getIconFolderPath() + "HatsCursor.png");
             this.excludeSet = config.excludedHatIDs;
             this.customOrder = config.customHatOrder;
 

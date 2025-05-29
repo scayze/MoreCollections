@@ -16,7 +16,7 @@ namespace CollectionsMod
         {
             this.name = "Weapons";
             this.TabID = 5658;
-            this.Icon = Helper.ModContent.Load<Texture2D>("assets/LooseSprites/WeaponCursor.png");
+            this.Icon = Helper.ModContent.Load<Texture2D>(getIconFolderPath() + "WeaponCursor.png");
             this.excludeSet = config.excludedWeaponIDs;
             this.customOrder = config.customWeaponOrder;
         }

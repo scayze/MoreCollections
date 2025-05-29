@@ -18,7 +18,7 @@ namespace CollectionsMod
         {
             name = "Boots";
             this.TabID = 5662;
-            this.Icon = Helper.ModContent.Load<Texture2D>("assets/LooseSprites/BootsCursor.png");
+            this.Icon = Helper.ModContent.Load<Texture2D>(getIconFolderPath() + "BootsCursor.png");
             this.excludeSet = config.excludedShoeIDs;
             this.customOrder = config.customShoeOrder;
         }

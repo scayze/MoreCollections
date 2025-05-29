@@ -12,23 +12,29 @@ namespace CollectionsMod
             CollectionPageHelper.upButton.tryHover(x, y, 0.5f);
             CollectionPageHelper.downButton.tryHover(x, y, 0.5f);
         }
+
         internal static void Draw(CollectionsPage __instance, SpriteBatch b)
         {
-            if (CollectionPageHelper.currentSideTabPage == 1) CollectionPageHelper.upButton.draw(b);
-            if (CollectionPageHelper.currentSideTabPage == 0) CollectionPageHelper.downButton.draw(b);
+            int pageCount = (__instance.sideTabs.Count / CollectionPageHelper.maxPerPage);
+
+            CollectionPageHelper.upButton.visible = CollectionPageHelper.currentSideTabPage > 0;
+            CollectionPageHelper.downButton.visible = CollectionPageHelper.currentSideTabPage < pageCount;
+
+            CollectionPageHelper.upButton.draw(b);
+            CollectionPageHelper.downButton.draw(b);
         }
 
         internal static bool ReceiveLeftClick(CollectionsPage __instance, int x, int y, bool playSound = true)
         {
 
-            if (CollectionPageHelper.upButton.containsPoint(x, y))
+            if (CollectionPageHelper.upButton.containsPoint(x, y) && CollectionPageHelper.upButton.visible)
             {
-                CollectionPageHelper.currentSideTabPage = 0;
+                CollectionPageHelper.currentSideTabPage -= 1;
                 CollectionPageHelper.RedrawSideTabs(__instance);
             }
-            if (CollectionPageHelper.downButton.containsPoint(x, y))
+            if (CollectionPageHelper.downButton.containsPoint(x, y) && CollectionPageHelper.downButton.visible)
             {
-                CollectionPageHelper.currentSideTabPage = 1;
+                CollectionPageHelper.currentSideTabPage += 1;
                 CollectionPageHelper.RedrawSideTabs(__instance);
             }
             return true;

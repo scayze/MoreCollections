@@ -69,11 +69,14 @@ namespace CollectionsMod
             Texture2D texture = itemdata.GetTexture();
             Rectangle sourceRect = itemdata.GetSourceRect();
 
+            int pageIdx = CollectionPageHelper.GetTabPageForTabID(_instance, TabID);
+            int leftIdx = CollectionPageHelper.GetFirstSideTabOnPage(_instance, pageIdx).Value.myID;
+
             return new ClickableTextureComponent(itemdata.QualifiedItemId + " " + hasCollected, new Rectangle(iconX, iconY, 64, componentHeight), null, "", texture, sourceRect, 4f)
             {
                 myID = id,
                 rightNeighborID = (((id + 1) % maxColumns == 0) ? (-1) : (id + 1)),
-                leftNeighborID = ((id % maxColumns == 0) ? 7001 : (id - 1)),
+                leftNeighborID = ((id % maxColumns == 0) ? leftIdx : (id - 1)),
                 downNeighborID = ((iconY + iconWidth > _instance.yPositionOnScreen + _instance.height - iconHeight - 4) ? (-7777) : (id + maxColumns)),
                 upNeighborID = ((id < maxColumns) ? 12347 : (id - maxColumns)),
                 fullyImmutable = true

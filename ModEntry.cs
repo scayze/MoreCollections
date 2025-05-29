@@ -1,4 +1,6 @@
 ﻿
+using CollectionsMod.Integrations;
+using GenericModConfigMenu;
 using HarmonyLib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,7 +18,7 @@ namespace CollectionsMod
     /// The mod entry point.
     internal sealed class ModEntry : Mod
     {
-        private ModConfig Config;
+        internal ModConfig Config;
 
         public static CModData modData;
 
@@ -42,6 +44,7 @@ namespace CollectionsMod
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.Saving += OnSaving;
             helper.Events.GameLoop.UpdateTicked += OnTicked;
+            helper.Events.GameLoop.GameLaunched += OnGameLaunched;
 
             // Harmony Patches
             Harmony harmony = new Harmony(this.ModManifest.UniqueID);
@@ -71,7 +74,11 @@ namespace CollectionsMod
                postfix: new HarmonyMethod(typeof(Patches), nameof(Patches.Draw))
             );
 
+        }
 
+        private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
+        {
+            HookToGMCM.Apply(this);
         }
 
 
@@ -161,9 +168,7 @@ namespace CollectionsMod
         private void OnMenuChange(object? sender, MenuChangedEventArgs e)
         {
             if (!(e.NewMenu is GameMenu menu))
-            {
                 return;
-            }
 
             foreach (IClickableMenu page in menu.pages)
             {
